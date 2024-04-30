@@ -1,0 +1,79 @@
+<html>
+
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.0.0/dist/tf.min.js"></script>
+    <script>
+        window.onload = function () {
+            const bandas = [
+                'Nirvana',
+                'Nine Inch Nails',
+                'Backstreet Boys',
+                'N Sync',
+                'Night Club',
+                'Apashe',
+                'STP',
+            ]
+            const estilos = [
+                'Grunge',
+                'Rock',
+                'Industrial',
+                'Boy Band',
+                'Dance',
+                'Techno',
+            ]
+
+            // Estilos musicales
+            const estilos_bandas = tf.tensor([
+                [1, 1, 0, 0, 0, 0],
+                [1, 0, 1, 0, 0, 0],
+                [0, 0, 0, 1, 1, 0],
+                [0, 0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0, 1],
+                [0, 0, 1, 0, 0, 1],
+                [1, 1, 0, 0, 0, 0],
+            ])
+
+            const listaBandas = document.getElementById('lista-bandas');
+            bandas.forEach((banda, index) => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = ` <div class='d-flex w-100 flex-column'> <label class="form-label">${banda}: <input type="number" min="1" max="10" id="banda-${index}" class="form-control list-group-item" /></label></div>`;
+                listItem.classList.add('form-group');
+                listaBandas.appendChild(listItem);
+            });
+
+            document.getElementById('boton-procesar').addEventListener('click', () => {
+                const votos_usuario = tf.tensor([bandas.map((_, index) => {
+                    const input = document.getElementById(`banda-${index}`);
+                    return input.value ? parseInt(input.value, 10) : 0;
+                })]);
+
+                // Estilos favoritos del usuario
+                const estilos_usuario = tf.matMul(votos_usuario, estilos_bandas)
+
+                // Ordenamos los estilos
+                const top_estilos_usuario = tf.topk(estilos_usuario, estilos.length)
+                // Volvemos a JavaScript
+                const top_estilos = top_estilos_usuario.indices.arraySync()
+                // Mostramos los resultados
+                const categoriasOrdenadas = top_estilos[0].map((v) => estilos[v])
+                document.getElementById('resultado').innerText = `Tus estilos favoritos son: ${categoriasOrdenadas.join(', ')}`;
+            });
+        }
+    </script>
+</head>
+
+<body class="container py-5 d-flex flex-column align-items-center" style="background-color: rgb(245, 245, 245);">
+    <div class="p-5 d-flex flex-column align-items-center"
+        style="background-color: rgb(255, 255, 255); border-radius: 10px; width: fit-content; height: fit-content;  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);">
+        <h1 class="mb-5">Califica las bandas</h1>
+        <ul id="lista-bandas" class="mb-4 list-group list-unstyled w-100"></ul>
+        <button id="boton-procesar" class="btn btn-primary">Procesar Información</button>
+    </div>
+    <p id="resultado" class="mt-4"></p>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
